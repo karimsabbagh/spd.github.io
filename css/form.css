@@ -1,0 +1,105 @@
+form {
+	text-align: start;
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-lg);
+
+	svg {
+		height: 1em;
+		width: auto;
+	}
+}
+
+label.floating {
+	position: relative;
+	display: grid;
+	grid-template: "input" auto / 1fr;
+	gap: 0;
+	color: var(--grayscale-900);
+	padding: 18px 15px;
+	border-radius: var(--radius-input);
+	border: 1px solid var(--color-border);
+	align-items: center;
+	background-color: white;
+
+	&:focus-within {
+		border-color: var(--color-primary);
+		outline: none;
+		transition: border-color .2s ease, background .2s ease;
+		background-color: var(--color-primary-100);
+	}
+
+	.label-text {
+		position: absolute;
+		left: 15px;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--grayscale-500);
+		font: var(--font-body-medium-semibold);
+		pointer-events: none;
+		transition: all 0.2s ease;
+		background: white;
+		padding: 0 4px;
+	}
+
+	&:focus-within .label-text,
+	&:has(input:not(:placeholder-shown)) .label-text {
+		top: 0;
+		left: 11px;
+		transform: translateY(-50%);
+		font-size: 12px;
+		color: var(--color-primary);
+	}
+
+	input:is([type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"]),
+	select,
+	textarea {
+		width: 100%;
+		color: inherit;
+		background-color: transparent;
+		font: var(--font-body-medium-semibold);
+		grid-area: input;
+		border: none;
+
+		&::placeholder {
+			color: transparent;
+		}
+
+		&:focus-visible {
+			outline: none;
+		}
+	}
+}
+
+input[type="checkbox"] {
+	appearance: none;
+	display: grid;
+	place-content: center;
+	width: 20px;
+	height: 20px;
+	border: 1px solid var(--grayscale-300);
+	border-radius: 4px;
+	cursor: pointer;
+	flex-shrink: 0;
+	transition: border-color 0.2s ease;
+
+	&:checked {
+		border-color: var(--color-primary);
+	}
+
+	&::before {
+		transition: all 0.2s ease allow-discrete;
+		content: "";
+		display: none;
+		opacity: 0;
+		width: 12px;
+		height: 12px;
+		background-color: var(--color-primary);
+		border-radius: 2px;
+	}
+
+	&:checked::before {
+		opacity: 1;
+		display: block;
+	}
+}
