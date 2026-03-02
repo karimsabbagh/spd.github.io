@@ -1,5 +1,5 @@
 const DB_NAME = "spd";
-const DB_VERSION = 2;
+const DB_VERSION = 4;
 
 function open() {
 	return new Promise((resolve, reject) => {
@@ -10,9 +10,14 @@ function open() {
 			if (db.objectStoreNames.contains("tasks")) {
 				db.deleteObjectStore("tasks");
 			}
-			if (!db.objectStoreNames.contains("products")) {
-				db.createObjectStore("products", { keyPath: "id", autoIncrement: true });
+			if (db.objectStoreNames.contains("products")) {
+				db.deleteObjectStore("products");
 			}
+			if (!db.objectStoreNames.contains("scans")) {
+				db.createObjectStore("scans", { keyPath: "id", autoIncrement: true });
+			}
+			const productStore = db.createObjectStore("products", { keyPath: "id", autoIncrement: true });
+			productStore.createIndex("rfid", "rfid", { unique: true });
 		};
 
 		request.onsuccess = () => resolve(request.result);
@@ -31,13 +36,22 @@ function tx(store, mode, fn) {
 	});
 }
 
+function createAccessor(storeName) {
+	return {
+		getAll: () => tx(storeName, "readonly", (s) => s.getAll()),
+		get: (id) => tx(storeName, "readonly", (s) => s.get(id)),
+		add: (item) => tx(storeName, "readwrite", (s) => s.add(item)),
+		put: (item) => tx(storeName, "readwrite", (s) => s.put(item)),
+		delete: (id) => tx(storeName, "readwrite", (s) => s.delete(id)),
+		clear: () => tx(storeName, "readwrite", (s) => s.clear()),
+	};
+}
+
 export const db = {
+	scans: createAccessor("scans"),
 	products: {
-		getAll: () => tx("products", "readonly", (s) => s.getAll()),
-		get: (id) => tx("products", "readonly", (s) => s.get(id)),
-		add: (item) => tx("products", "readwrite", (s) => s.add(item)),
-		put: (item) => tx("products", "readwrite", (s) => s.put(item)),
-		delete: (id) => tx("products", "readwrite", (s) => s.delete(id)),
+		...createAccessor("products"),
+		getByRfid: (rfid) => tx("products", "readonly", (s) => s.index("rfid").get(rfid)),
 	},
 };
 window.db = db;

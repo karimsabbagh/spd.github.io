@@ -19,7 +19,8 @@ class RootApp extends SignalWatcher(LitElement) {
 
 	connectedCallback() {
 		super.connectedCallback();
-		appSignals.fetchProducts();
+		appSignals.fetchScans();
+		appSignals.fetchCatalog();
 
 		this.router.currentRoute = this.router.matchCurrentURL(routes) || routes[0];
 		this.requestUpdate();

@@ -66,7 +66,7 @@ class HomePage extends SignalWatcher(LitElement) {
 	}
 
 	render() {
-		const products = appSignals.products.get();
+		const products = appSignals.scans.get();
 		const totalScanned = appSignals.totalScanned.get();
 		const readerActive = appSignals.readerActive.get();
 
@@ -112,7 +112,7 @@ class HomePage extends SignalWatcher(LitElement) {
 											<td>${p.his || "—"}</td>
 											<td>${p.disposition}</td>
 											<td>
-												<button class="delete-btn" @click=${() => this._deleteProduct(p.id)} title="Delete">
+												<button class="delete-btn" @click=${() => this._deleteScan(p.id)} title="Delete">
 													<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 														<path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
 														<path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
@@ -150,8 +150,8 @@ class HomePage extends SignalWatcher(LitElement) {
 		await appSignals.simulateScan();
 	}
 
-	async _deleteProduct(id) {
-		await appSignals.deleteProduct(id);
+	async _deleteScan(id) {
+		await appSignals.deleteScan(id);
 		document.dispatchEvent(new CustomEvent("show-toast", {
 			detail: { message: "Product removed", type: "info" },
 		}));

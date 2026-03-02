@@ -1,6 +1,6 @@
 // Service Worker
 
-const CACHE_NAME = "spd-static-v2";
+const CACHE_NAME = "spd-static-v4";
 const ASSETS_TO_CACHE = [
 	"./",
 	"./index.html",
@@ -18,6 +18,7 @@ const ASSETS_TO_CACHE = [
 	"./components/toast-notification.js",
 	"./state/app-signals.js",
 	"./state/db.js",
+	"./state/mock-api.js",
 	"./fonts/open-sans-var.woff2",
 ];
 

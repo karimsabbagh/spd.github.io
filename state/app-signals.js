@@ -1,149 +1,107 @@
 import { State, Computed } from "lit-bundle";
 import { db } from "@state/db.js";
-
-const MOCK_CATALOG = [
-	{
-		manufacturer: "LifeNet Health",
-		product: "Soft Tissue Flexi Right Lateral Meniscus Frozen",
-		model: "FMNRL",
-		lotSerial: "L6548/S1235",
-		disposition: "Scanned To Patient",
-	},
-	{
-		manufacturer: "Medtronic",
-		product: "Spinal Fusion Cage PEEK Interbody",
-		model: "SFC-22",
-		lotSerial: "L8821/S4410",
-		disposition: "Scanned To Patient",
-	},
-	{
-		manufacturer: "Stryker",
-		product: "Triathlon Total Knee System CR",
-		model: "TKS-CR7",
-		lotSerial: "L3302/S7789",
-		disposition: "Scanned To Patient",
-	},
-	{
-		manufacturer: "DePuy Synthes",
-		product: "ATTUNE Knee Fixed Bearing Tibial Insert",
-		model: "ATN-FB",
-		lotSerial: "L4415/S2201",
-		disposition: "Scanned To Patient",
-	},
-	{
-		manufacturer: "Zimmer Biomet",
-		product: "Persona Revision Femoral Component",
-		model: "PRS-FC3",
-		lotSerial: "L9903/S5567",
-		disposition: "Scanned To Patient",
-	},
-	{
-		manufacturer: "LifeNet Health",
-		product: "Cortical Bone Allograft Strut",
-		model: "CBA-STR",
-		lotSerial: "L1120/S3344",
-		disposition: "Scanned To Patient",
-	},
-	{
-		manufacturer: "Smith & Nephew",
-		product: "COBLATION Wand SpeedBlade 90",
-		model: "SB-90",
-		lotSerial: "L5578/S6612",
-		disposition: "Scanned To Patient",
-	},
-	{
-		manufacturer: "Arthrex",
-		product: "BioComposite SwiveLock Anchor 5.5mm",
-		model: "SL-5.5",
-		lotSerial: "L7741/S8890",
-		disposition: "Scanned To Patient",
-	},
-];
-
-const RFID_CATALOG = new Map([
-	["E00401501211A76A", MOCK_CATALOG[0]], // LifeNet Health - Soft Tissue Flexi
-	["E00401501211B82C", MOCK_CATALOG[1]], // Medtronic - Spinal Fusion Cage
-	["E00401501211C93D", MOCK_CATALOG[2]], // Stryker - Triathlon Total Knee
-	["E00401501211D04E", MOCK_CATALOG[3]], // DePuy Synthes - ATTUNE Knee
-	["E00401501211E15F", MOCK_CATALOG[4]], // Zimmer Biomet - Persona Revision
-	["E00401501211F260", MOCK_CATALOG[5]], // LifeNet Health - Cortical Bone
-	["E00401501211A371", MOCK_CATALOG[6]], // Smith & Nephew - COBLATION Wand
-	["E00401501211B482", MOCK_CATALOG[7]], // Arthrex - BioComposite SwiveLock
-]);
+import { fetchProductsCatalog } from "@state/mock-api.js";
 
 class AppSignals {
-	products = new State([]);
+	scans = new State([]);
+	catalogProducts = new State([]);
 	loading = new State(false);
 	readerActive = new State(true);
 
 	totalScanned = new Computed(() => {
-		return this.products.get().length;
+		return this.scans.get().length;
 	});
 
-	async fetchProducts() {
+	async fetchScans() {
 		this.loading.set(true);
 		try {
-			const products = await db.products.getAll();
-			this.products.set(products);
+			const scans = await db.scans.getAll();
+			this.scans.set(scans);
 		} catch (e) {
-			console.error("Failed to fetch products:", e);
+			console.error("Failed to fetch scans:", e);
 		} finally {
 			this.loading.set(false);
 		}
 	}
 
-	async addProduct(product) {
-		const id = await db.products.add({
-			...product,
+	async fetchCatalog() {
+		try {
+			const products = await fetchProductsCatalog();
+			products[0].rfid = "E00401501211A76A";
+			await db.products.clear();
+			for (const product of products) {
+				await db.products.add(product);
+			}
+			const saved = await db.products.getAll();
+			this.catalogProducts.set(saved);
+		} catch (e) {
+			console.error("Failed to fetch catalog:", e);
+			// Network failed — fall back to existing IndexedDB data
+			const existing = await db.products.getAll();
+			this.catalogProducts.set(existing);
+		}
+	}
+
+	async addScan(scan) {
+		const id = await db.scans.add({
+			...scan,
 			scannedAt: new Date().toISOString(),
 		});
-		const saved = await db.products.get(id);
-		this.products.set([...this.products.get(), saved]);
+		const saved = await db.scans.get(id);
+		this.scans.set([...this.scans.get(), saved]);
 		return saved;
 	}
 
-	async deleteProduct(id) {
-		await db.products.delete(id);
-		this.products.set(this.products.get().filter(p => p.id !== id));
+	async deleteScan(id) {
+		await db.scans.delete(id);
+		this.scans.set(this.scans.get().filter(p => p.id !== id));
 	}
 
 	async resolveRfidTag(tagId) {
 		const normalized = tagId.toUpperCase().trim();
-		const item = RFID_CATALOG.get(normalized);
+		console.log("Scanned RFID tag:", normalized);
+		const item = await db.products.getByRfid(normalized);
 		if (!item) {
 			document.dispatchEvent(new CustomEvent("show-toast", {
 				detail: { message: `Unknown RFID tag: ${normalized}`, type: "error" },
 			}));
 			return null;
 		}
-		const product = await this.addProduct({
+		const scan = await this.addScan({
 			manufacturer: item.manufacturer,
 			product: item.product,
 			model: item.model,
 			lotSerial: item.lotSerial,
-			his: "",
+			his: item.his || "",
 			disposition: item.disposition,
 		});
 		document.dispatchEvent(new CustomEvent("show-toast", {
 			detail: { message: `Scanned: ${item.manufacturer} - ${item.product}`, type: "success" },
 		}));
-		return product;
+		return scan;
 	}
 
 	async simulateScan() {
-		const item = MOCK_CATALOG[Math.floor(Math.random() * MOCK_CATALOG.length)];
-		const product = await this.addProduct({
+		const catalog = this.catalogProducts.get();
+		if (catalog.length === 0) {
+			document.dispatchEvent(new CustomEvent("show-toast", {
+				detail: { message: "Catalog not loaded yet", type: "error" },
+			}));
+			return null;
+		}
+		const item = catalog[Math.floor(Math.random() * catalog.length)];
+		const scan = await this.addScan({
 			manufacturer: item.manufacturer,
 			product: item.product,
 			model: item.model,
 			lotSerial: item.lotSerial,
-			his: "",
+			his: item.his || "",
 			disposition: item.disposition,
 		});
 		document.dispatchEvent(new CustomEvent("show-toast", {
 			detail: { message: "Product scanned successfully", type: "success" },
 		}));
-		return product;
+		return scan;
 	}
 }
 
