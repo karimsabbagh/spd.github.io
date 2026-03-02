@@ -1,32 +1,182 @@
-/* Urbanist Font - using system font as fallback */
+/* Open Sans Variable Font */
 @font-face {
-	font-family: "Urbanist";
-	src: local("Urbanist");
-	font-weight: 400;
+	font-family: "Open Sans";
+	src: url("/fonts/open-sans-var.woff2") format("woff2");
+	font-weight: 400 700;
 	font-style: normal;
 	font-display: swap;
 }
 
-@font-face {
-	font-family: "Urbanist";
-	src: local("Urbanist");
-	font-weight: 500;
-	font-style: normal;
-	font-display: swap;
-}
+/* Disposition Page */
+.disposition-page {
+	display: grid;
+	grid-template: "location-bar" 52px "title-row" auto "body" 1fr/1fr;
+	height: 100vh;
+	background: var(--color-surface);
 
-@font-face {
-	font-family: "Urbanist";
-	src: local("Urbanist");
-	font-weight: 600;
-	font-style: normal;
-	font-display: swap;
-}
+	.location-bar {
+		grid-area: location-bar;
+		background: var(--color-surface-alt);
+		text-align: center;
+		padding: 12px var(--spacing-lg);
+		font: var(--font-body-large-semibold);
+		color: var(--grayscale-800, #1f2937);
+		/* border-bottom: 1px solid var(--color-border); */
+	}
 
-@font-face {
-	font-family: "Urbanist";
-	src: local("Urbanist");
-	font-weight: 700;
-	font-style: normal;
-	font-display: swap;
+	.title-row {
+		grid-area: title-row;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 14px var(--spacing-lg);
+		border-block: 2px solid var(--color-border);
+
+		h2 {
+			margin: 0;
+			font: var(--font-body-xlarge-semibold);
+			color: var(--grayscale-900, #111827);
+		}
+
+		.total-scanned {
+			font: var(--font-body-medium-medium);
+			color: var(--grayscale-600, #4b5563);
+
+			strong {
+				font-weight: 700;
+				color: var(--grayscale-900, #111827);
+			}
+		}
+	}
+
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 16px;
+		padding: var(--spacing-xl);
+		color: var(--grayscale-400, #9ca3af);
+
+		p {
+			font: var(--font-body-large-medium);
+			color: var(--grayscale-500, #6b7280);
+		}
+	}
+
+	.table-wrapper {
+		overflow: auto;
+		padding: 0 var(--spacing-lg) var(--spacing-lg);
+		background-color: #f5f5f5
+	}
+
+	.scan-table {
+		width: 100%;
+		border-collapse: collapse;
+		font: var(--font-body-medium-regular);
+		border-spacing: 0 5px;
+		border-collapse: separate;
+
+		th {
+			text-align: left;
+			padding: 10px 12px;
+			font: var(--font-body-small-bold);
+			color: var(--grayscale-700);
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			border-bottom: 2px solid var(--grayscale-300);
+			white-space: nowrap;
+		}
+
+		td {
+			padding: 10px 12px;
+			color: var(--grayscale-800, #1f2937);
+			border-bottom: 1px solid var(--grayscale-200);
+		}
+
+		tbody tr {
+			/* border-left: 3px solid var(--color-primary, #4f46e5); */
+			background-color: white;
+
+			&:hover {
+				background: var(--grayscale-50, #f9fafb);
+			}
+		}
+
+		.delete-btn {
+			background: none;
+			border: none;
+			padding: 4px;
+			cursor: pointer;
+			color: var(--grayscale-400, #9ca3af);
+			border-radius: var(--radius-small, 8px);
+			transition: all 0.2s;
+			display: flex;
+			align-items: center;
+
+			svg {
+				width: 18px;
+				height: 18px;
+			}
+
+			&:hover {
+				color: var(--color-error, #ef4444);
+				background: color-mix(in oklch, var(--color-error, #ef4444) 10%, white);
+			}
+		}
+	}
+
+	.reader-status {
+		position: fixed;
+		bottom: 16px;
+		left: 16px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 14px;
+		background: white;
+		border-radius: 999px;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+		font: var(--font-body-small-medium);
+		color: var(--grayscale-600, #4b5563);
+		z-index: 10;
+
+		.status-dot {
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background: var(--grayscale-300, #d1d5db);
+
+			&.active {
+				background: #22c55e;
+			}
+		}
+	}
+
+	.simulate-scan-btn {
+		position: fixed;
+		bottom: 16px;
+		right: 16px;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 10px 18px;
+		background: var(--color-primary, #4f46e5);
+		color: white;
+		border: none;
+		border-radius: 999px;
+		font: var(--font-body-small-semibold);
+		cursor: pointer;
+		box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+		z-index: 10;
+		transition: background 0.2s;
+
+		&:hover {
+			background: color-mix(in oklch, var(--color-primary, #4f46e5) 85%, black);
+		}
+
+		&:active {
+			transform: scale(0.96);
+		}
+	}
 }

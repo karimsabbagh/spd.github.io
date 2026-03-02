@@ -1,6 +1,6 @@
 // Service Worker
 
-const CACHE_NAME = "spd-static-v1";
+const CACHE_NAME = "spd-static-v2";
 const ASSETS_TO_CACHE = [
 	"./",
 	"./index.html",
@@ -15,12 +15,10 @@ const ASSETS_TO_CACHE = [
 	"./js/router.js",
 	"./views/root-app.js",
 	"./views/home-page.js",
-	"./views/tasks-page.js",
-	"./views/settings-page.js",
-	"./components/top-nav.js",
 	"./components/toast-notification.js",
 	"./state/app-signals.js",
 	"./state/db.js",
+	"./fonts/open-sans-var.woff2",
 ];
 
 self.addEventListener("install", (event) => {
@@ -45,21 +43,19 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
 	if (event.request.mode === "navigate") {
 		event.respondWith(
-			caches.match("./index.html").then((cached) => cached || fetch(event.request))
+			fetch(event.request).catch(() => caches.match("./index.html"))
 		);
 		return;
 	}
 
 	event.respondWith(
-		caches.match(event.request).then((cached) => {
-			return cached || fetch(event.request).then((response) => {
-				if (response.ok) {
-					const clone = response.clone();
-					caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-				}
-				return response;
-			});
-		})
+		fetch(event.request).then((response) => {
+			if (response.ok) {
+				const clone = response.clone();
+				caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+			}
+			return response;
+		}).catch(() => caches.match(event.request))
 	);
 });
 
@@ -95,18 +91,8 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
 	event.notification.close();
 
-	const data = event.notification.data || {};
 	const BASE = "/pou/spd";
 	let targetUrl = `${BASE}/`;
-
-	switch (data.type) {
-		case "task_assigned":
-		case "task_completed":
-			targetUrl = `${BASE}/tasks`;
-			break;
-		default:
-			targetUrl = `${BASE}/`;
-	}
 
 	event.waitUntil(
 		clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {

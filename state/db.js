@@ -1,5 +1,5 @@
 const DB_NAME = "spd";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 function open() {
 	return new Promise((resolve, reject) => {
@@ -7,8 +7,11 @@ function open() {
 
 		request.onupgradeneeded = () => {
 			const db = request.result;
-			if (!db.objectStoreNames.contains("tasks")) {
-				db.createObjectStore("tasks", { keyPath: "id", autoIncrement: true });
+			if (db.objectStoreNames.contains("tasks")) {
+				db.deleteObjectStore("tasks");
+			}
+			if (!db.objectStoreNames.contains("products")) {
+				db.createObjectStore("products", { keyPath: "id", autoIncrement: true });
 			}
 		};
 
@@ -29,11 +32,12 @@ function tx(store, mode, fn) {
 }
 
 export const db = {
-	tasks: {
-		getAll: () => tx("tasks", "readonly", (s) => s.getAll()),
-		get: (id) => tx("tasks", "readonly", (s) => s.get(id)),
-		add: (item) => tx("tasks", "readwrite", (s) => s.add(item)),
-		put: (item) => tx("tasks", "readwrite", (s) => s.put(item)),
-		delete: (id) => tx("tasks", "readwrite", (s) => s.delete(id)),
+	products: {
+		getAll: () => tx("products", "readonly", (s) => s.getAll()),
+		get: (id) => tx("products", "readonly", (s) => s.get(id)),
+		add: (item) => tx("products", "readwrite", (s) => s.add(item)),
+		put: (item) => tx("products", "readwrite", (s) => s.put(item)),
+		delete: (id) => tx("products", "readwrite", (s) => s.delete(id)),
 	},
 };
+window.db = db;

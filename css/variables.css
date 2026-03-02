@@ -30,10 +30,8 @@
 	--grayscale-100: #f5f5f5;
 	--grayscale-50: #fcfcfc;
 
-	--color-bg: #f7f7f7;
-	--color-bg-selected: color-mix(in oklch, var(--color-primary-500) 12%, white 88%);
 	--color-surface: #fff;
-	--color-surface-alt: #f3f4f5;
+	--color-surface-alt: #f1f1f1;
 	--color-tile: var(--color-surface-alt);
 
 	--color-text: #36393f;
@@ -47,7 +45,7 @@
 	--color-error: #e3342f;
 	--color-info: #1e90ff;
 
-	--color-border: rgba(0, 0, 0, 0.05);
+	--color-border: #d2dadc;
 	--color-outline: rgba(79, 70, 229, 0.55);
 	--color-focus-ring: rgba(79, 70, 229, 0.30);
 
@@ -57,7 +55,7 @@
 	  2. Typography
 	  ========================================*/
 
-	--font-family: "Urbanist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--font-family: "Open Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
 	--font-h1: 700 3rem/120% var(--font-family);
 	--font-h2: 700 2.5rem/120% var(--font-family);
