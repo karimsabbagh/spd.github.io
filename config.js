@@ -1,1 +1,1 @@
-export const BASE = "/pou/spd";
+export const BASE = "/spd.github.io";

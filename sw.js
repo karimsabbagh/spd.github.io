@@ -91,7 +91,7 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
 	event.notification.close();
 
-	const BASE = "/pou/spd";
+	const BASE = "/spd.github.io";
 	let targetUrl = `${BASE}/`;
 
 	event.waitUntil(
