@@ -1,6 +1,6 @@
-# SPD — Simple Project Dashboard
+# SPD — Sterile Processing Department
 
-A lightweight, installable PWA task manager. Zero-build, zero-dependencies frontend using native ES modules and Web Components.
+A lightweight, installable PWA for medical device tracking and disposition. Scan products via RFID reader (or simulate scans), match them against a product catalog, and track dispositions. Zero-build, zero-dependencies frontend using native ES modules and Web Components.
 
 ## Tech Stack
 
@@ -13,10 +13,25 @@ A lightweight, installable PWA task manager. Zero-build, zero-dependencies front
 
 No build step, no bundler, no Node.js runtime. Served as plain static files.
 
+## How It Works
+
+### Product Catalog
+On app load, a product catalog (500 medical devices) is fetched from a webservice (currently mocked) and stored in the IndexedDB `products` table. Each product has an RFID tag, manufacturer, product name, model, lot/serial, HIS code, disposition, and category. If the network fetch fails, the app falls back to the previously cached catalog in IndexedDB.
+
+### RFID Scanning
+When an RFID tag is scanned (via a physical reader or the simulate button), the app looks up the tag in the `products` IndexedDB store using an indexed `rfid` field. If a match is found, the product details are saved to the `scans` store and displayed in the disposition table.
+
+### Data Model
+
+| IndexedDB Store | Purpose |
+|---|---|
+| `products` | Product catalog (500 items, refreshed from webservice on load) |
+| `scans` | Scanned/dispositioned items (persists across sessions) |
+
 ## Project Structure
 
 ```
-spd-static/
+spd/
 ├── index.html                  # Entry point + import map
 ├── config.js                   # Base path configuration
 ├── manifest.json               # PWA manifest
@@ -32,16 +47,14 @@ spd-static/
 │   ├── lit.all.bundle.js       # Pre-bundled Lit + Signals + Directives
 │   └── router.js               # Navigation API router
 ├── views/                      # Page components (light DOM)
-│   ├── root-app.js             # App shell, tabs, router setup
-│   ├── home-page.js            # Dashboard with stats + quick add
-│   ├── tasks-page.js           # Task list with pending/completed tabs
-│   └── settings-page.js        # App info
-├── components/                 # Reusable components (shadow DOM)
-│   ├── top-nav.js              # Back button + page title
+│   ├── root-app.js             # App shell, router setup, catalog + scan init
+│   └── home-page.js            # Disposition table, RFID listener, simulate scan
+├── components/
 │   └── toast-notification.js   # Toast notification system
 ├── state/
-│   ├── app-signals.js          # Reactive state (tasks, loading, computed)
-│   └── db.js                   # IndexedDB wrapper
+│   ├── app-signals.js          # Reactive state (scans, catalog, RFID resolution)
+│   ├── db.js                   # IndexedDB wrapper (products + scans stores)
+│   └── mock-api.js             # Mock webservice returning 500 medical products
 └── assets/icons/               # PWA icons
     ├── favicon.png
     ├── icon-192.png
@@ -57,42 +70,16 @@ Open the project folder in VS Code and use the [Live Server](https://marketplace
 All path configuration lives in `config.js`:
 
 ```js
-export const BASE = "/pou/spd";
+export const BASE = "/spd.github.io";
 ```
 
 This `BASE` value is imported by the router and view components to prefix all navigation paths. It allows the app to be served from any subdirectory.
 
 > **Note**: The service worker (`sw.js`) cannot use ES module imports, so it has its own `BASE` constant declared inline. Keep both in sync.
 
-## Deploying to a Subdirectory
-
-When serving from a path like `https://example.com/pou/spd`:
-
-1. `config.js` — set `BASE` to `"/pou/spd"`
-2. `sw.js` — set the inline `BASE` to `"/pou/spd"`
-3. `manifest.json` — set `start_url` and `scope` to `"/pou/spd/"`, prefix icon `src` paths with `/pou/spd/`
-
-## Moving to Its Own Domain
-
-When the app moves to the root of its own domain (e.g. `https://spd.example.com`):
-
-1. `config.js` — set `BASE` to `""`
-2. `sw.js` — set the inline `BASE` to `""`
-3. `manifest.json` — update:
-   ```json
-   {
-     "start_url": "/",
-     "scope": "/",
-     "icons": [
-       { "src": "/assets/icons/icon-192.png", ... },
-       { "src": "/assets/icons/icon-512.png", ... }
-     ]
-   }
-   ```
-
 ## Architecture Notes
 
 - **Views** use light DOM (`createRenderRoot() { return this; }`) so global CSS applies directly
 - **Components** use shadow DOM for style encapsulation
-- **Data flow**: component → `appSignals` method → IndexedDB write → signal update → reactive re-render
-- All data persists in the browser's IndexedDB — there is no backend
+- **Data flow**: RFID scan → `resolveRfidTag()` → IndexedDB `products` lookup by RFID index → save to `scans` store → signal update → reactive re-render
+- **Offline support**: Product catalog is cached in IndexedDB; if the network fetch fails on reload, the existing catalog is used. Scanned items always persist locally.
