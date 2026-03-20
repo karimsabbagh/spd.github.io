@@ -1,14 +1,14 @@
-import { State, Computed } from "lit-bundle";
+import { signal, computed } from "lit-bundle";
 import { db } from "@state/db.js";
 import { fetchProductsCatalog } from "@state/mock-api.js";
 
 class AppSignals {
-	scans = new State([]);
-	catalogProducts = new State([]);
-	loading = new State(false);
-	readerActive = new State(true);
+	scans = signal([]);
+	catalogProducts = signal([]);
+	loading = signal(false);
+	readerActive = signal(true);
 
-	totalScanned = new Computed(() => {
+	totalScanned = computed(() => {
 		return this.scans.get().length;
 	});
 

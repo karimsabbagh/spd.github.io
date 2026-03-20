@@ -1,7 +1,7 @@
 /* Open Sans Variable Font */
 @font-face {
 	font-family: "Open Sans";
-	src: url("../fonts/open-sans-var.woff2") format("woff2");
+	src: url("/fonts/open-sans-var.woff2") format("woff2");
 	font-weight: 400 700;
 	font-style: normal;
 	font-display: swap;
